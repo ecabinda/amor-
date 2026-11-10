@@ -346,6 +346,19 @@
         }
 
         /* HUD / UI OVERLAYS (Pinned to Viewport) */
+        
+        .hud-top-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            pointer-events: none;
+        }
+        .hud-top-section > * {
+            pointer-events: auto;
+        }
+
         .hud-overlay {
             position: fixed;
             top: 0;
@@ -1246,39 +1259,41 @@
 
     <!-- HUD FIXO (INTERLIGAÇÃO COM O UTILIZADOR) -->
     <div class="hud-overlay">
-        <!-- Topo -->
-        <div class="hud-top-bar">
-            <div class="hud-brand">
-                <span>🪐</span>
-                <span class="hud-brand-text">Indira & Edilson</span>
+        <!-- Secção Superior Unificada no Topo -->
+        <div class="hud-top-section">
+            <div class="hud-top-bar">
+                <div class="hud-brand">
+                    <span>🪐</span>
+                    <span class="hud-brand-text">Indira & Edilson</span>
+                </div>
+                <div class="hud-actions">
+                    <button class="hud-btn" id="btnCycleTheme" title="Mudar as Cores da Galáxia">
+                        <span id="themeIcon">🎨</span>
+                        <span class="btn-text" id="themeText">Tema</span>
+                    </button>
+                    <button class="hud-btn" id="btnToggleMusic" title="Ligar/Desligar Música">
+                        <span id="musicIcon">🎵</span>
+                        <span class="btn-text" id="musicText">Música</span>
+                    </button>
+                    <button class="hud-btn primary" id="btnOpenAddMemory" title="Adicionar Nova Memória">
+                        <span>➕</span>
+                        <span class="btn-text">Memória</span>
+                    </button>
+                    <button class="hud-btn zen-toggle-btn" id="btnToggleZenMode" title="Limpar Ecrã (Ver só o Universo)">
+                        <span>👁️</span>
+                        <span class="btn-text">Ecrã Limpo</span>
+                    </button>
+                    <label class="hud-btn desktop-only" style="cursor: pointer;" title="Carregar a vossa música MP3">
+                        <span>📁 MP3</span>
+                        <input type="file" id="customAudioInput" accept="audio/*" style="display: none;">
+                    </label>
+                </div>
             </div>
-            <div class="hud-actions">
-                <button class="hud-btn" id="btnCycleTheme" title="Mudar as Cores da Galáxia">
-                    <span id="themeIcon">🎨</span>
-                    <span class="btn-text" id="themeText">Tema</span>
-                </button>
-                <button class="hud-btn" id="btnToggleMusic" title="Ligar/Desligar Música">
-                    <span id="musicIcon">🎵</span>
-                    <span class="btn-text" id="musicText">Música</span>
-                </button>
-                <button class="hud-btn primary" id="btnOpenAddMemory" title="Adicionar Nova Memória">
-                    <span>➕</span>
-                    <span class="btn-text">Memória</span>
-                </button>
-                <button class="hud-btn zen-toggle-btn" id="btnToggleZenMode" title="Limpar Ecrã (Ver só o Universo)">
-                    <span>👁️</span>
-                    <span class="btn-text">Ecrã Limpo</span>
-                </button>
-                <label class="hud-btn desktop-only" style="cursor: pointer;" title="Carregar a vossa música MP3">
-                    <span>📁 MP3</span>
-                    <input type="file" id="customAudioInput" accept="audio/*" style="display: none;">
-                </label>
+            <div class="hud-filter-bar">
+                <button class="filter-pill active" id="filterAll" data-filter="all">💖 Todas (<span id="countAll">66</span>)</button>
+                <button class="filter-pill" id="filterVideos" data-filter="videos">🎬 Só Vídeos (<span id="countVideos">12</span>)</button>
+                <button class="filter-pill" id="filterPhotos" data-filter="photos">📸 Só Fotografias (<span id="countPhotos">54</span>)</button>
             </div>
-        </div>
-        <div class="hud-filter-bar">
-            <button class="filter-pill active" id="filterAll" data-filter="all">💖 Todas (<span id="countAll">66</span>)</button>
-            <button class="filter-pill" id="filterVideos" data-filter="videos">🎬 Só Vídeos (<span id="countVideos">12</span>)</button>
-            <button class="filter-pill" id="filterPhotos" data-filter="photos">📸 Só Fotografias (<span id="countPhotos">54</span>)</button>
         </div>
 
         <!-- Fundo: Mensagem Datilografada & Contador 03/10/2025 -->
@@ -1810,7 +1825,7 @@ Edilson.
         // Coordenadas da câmara
         let camX = 0, camY = 0;
         let targetCamX = 0, targetCamY = 0;
-        let camZoom = (window.innerWidth < 768 ? 0.75 : 1), targetCamZoom = (window.innerWidth < 768 ? 0.75 : 1);
+        let camZoom = (window.innerWidth <= 768 ? 0.95 : 1), targetCamZoom = (window.innerWidth <= 768 ? 0.95 : 1);
         let isDragging = false;
         let startPointer = { x: 0, y: 0 };
         let lastCamTarget = { x: 0, y: 0 };
@@ -1958,18 +1973,12 @@ Edilson.
         let allMemories = [...INITIAL_MEMORIES];
         let heartBubbles = [];
 
-        // Carregar posições guardadas se existirem
+        // Carregar posições guardadas se existirem (chave específica para mobile para garantir visibilidade perfeita)
+        const isMobileScreen = window.innerWidth <= 768;
+        const POS_STORAGE_KEY = isMobileScreen ? "galaxy_pos_mobile_v4" : "galaxy_pos_desktop_v4";
         let savedPositions = {};
-        // Se houver menos de 20 posições salvas mas temos 27 fotos, atualizar
         try {
-            const raw = localStorage.getItem("galaxy_heart_positions_indira_edilson_v2");
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Object.keys(parsed).length >= 50) savedPositions = parsed;
-            }
-        } catch(e) {}
-        try {
-            const raw = localStorage.getItem("galaxy_heart_positions_indira_edilson_v2");
+            const raw = localStorage.getItem(POS_STORAGE_KEY);
             if (raw) savedPositions = JSON.parse(raw);
         } catch(e) {}
 
@@ -1978,15 +1987,23 @@ Edilson.
             heartBubbles.forEach(b => {
                 posMap[b.item.id || b.index] = { x: b.x, y: b.y };
             });
-            localStorage.setItem("galaxy_heart_positions_indira_edilson_v2", JSON.stringify(posMap));
+            try {
+                localStorage.setItem(POS_STORAGE_KEY, JSON.stringify(posMap));
+            } catch(e) {}
         }
 
         function calculateInitialOrbitalPos(index) {
+            const isMobile = window.innerWidth <= 768;
+            const baseRx = isMobile ? 135 : 300;
+            const baseRy = isMobile ? 145 : 240;
+            const stepX = isMobile ? 65 : 160;
+            const stepY = isMobile ? 65 : 125;
+
             const orbitLevel = Math.floor(index / 8);
-            const orbitRadiusX = 300 + orbitLevel * 160;
-            const orbitRadiusY = 240 + orbitLevel * 125;
+            const orbitRadiusX = baseRx + orbitLevel * stepX;
+            const orbitRadiusY = baseRy + orbitLevel * stepY;
             const itemsInLevel = 8 + orbitLevel * 2;
-            const angle = ((index % itemsInLevel) * (Math.PI * 2 / itemsInLevel)) + (orbitLevel * 0.24);
+            const angle = ((index % itemsInLevel) * (Math.PI * 2 / itemsInLevel)) + (orbitLevel * 0.28);
             return {
                 x: Math.cos(angle) * orbitRadiusX,
                 y: Math.sin(angle) * orbitRadiusY
@@ -2832,8 +2849,9 @@ Edilson.
             const centerScrX = winW / 2 + camX * camZoom;
             const centerScrY = winH / 2 + camY * camZoom;
             
-            // Desenhar círculos orbitais celestiais
-            [320, 540, 760].forEach(r => {
+            // Desenhar círculos orbitais celestiais proporcionais ao dispositivo
+            const orbitRings = (window.innerWidth <= 768) ? [135, 200, 265, 330] : [300, 460, 620, 780];
+            orbitRings.forEach(r => {
                 ctx.beginPath();
                 ctx.arc(centerScrX, centerScrY, r * camZoom, 0, Math.PI * 2);
                 ctx.stroke();
