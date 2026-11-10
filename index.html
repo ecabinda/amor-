@@ -230,20 +230,13 @@
         }
 
         .photo-heart-satellite.is-dragging .heart-photo-frame {
-            position: relative;
-            width: 105px;
-            height: 105px;
-            cursor: pointer;
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
-            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
-            border-radius: 50%;
-            animation: gentleCosmicFloat 5.2s ease-in-out infinite;
-            will-change: transform;
+            transform: scale(1.18);
+            box-shadow: 0 0 25px rgba(255, 42, 133, 0.9);
         }
 
         .photo-heart-satellite:hover .heart-photo-frame {
             transform: scale(1.12);
-            box-shadow: 0 0 20px rgba(255, 42, 133, 0.7);
+            box-shadow: 0 0 20px rgba(255, 42, 133, 0.8);
         }
 
         img, video {
@@ -259,19 +252,21 @@
 
         .photo-heart-satellite:hover {
             z-index: 50;
-            
-            filter: drop-shadow(0 0 35px #ff2a85) drop-shadow(0 0 60px #a855f7) !important;
         }
 
         .heart-photo-frame {
-            width: 140px;
-            height: 140px;
+            width: 110px;
+            height: 110px;
             position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
-            filter: drop-shadow(0 0 18px rgba(255, 42, 133, 0.8));
-            animation: floatGently 6s infinite ease-in-out alternate;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+            animation: gentleCosmicFloat 5s ease-in-out infinite;
+            will-change: transform;
         }
 
         .heart-photo-clipper {
@@ -2332,7 +2327,7 @@ Edilson.
         let isWarping = false;
         let warpSpeed = 1;
 
-        const STAR_COUNT = (window.innerWidth <= 768) ? 160 : 380;
+        const STAR_COUNT = (window.innerWidth <= 768) ? 90 : 200;
         let stars = [];
 
         class Star3D {
@@ -2372,19 +2367,17 @@ Edilson.
                 const px = this.x * k + winW / 2;
                 const py = this.y * k + winH / 2;
 
-                if (px < -100 || px > winW + 100 || py < -100 || py > winH + 100) return;
+                if (px < -50 || px > winW + 50 || py < -50 || py > winH + 50) return;
 
                 const alpha = Math.min(1, Math.max(0.1, (2000 - this.z) / 1200));
 
-                ctx.save();
                 if (isWarping) {
-                    // Streaking lines during warp voyage
                     const prevK = 600 / (this.z + 55 * warpSpeed);
                     const prevPx = this.x * prevK + winW / 2;
                     const prevPy = this.y * prevK + winH / 2;
 
                     ctx.strokeStyle = `rgba(${this.color}, ${alpha * 0.9})`;
-                    ctx.lineWidth = Math.min(3, this.size * k * 1.5);
+                    ctx.lineWidth = Math.min(2.5, this.size * k * 1.5);
                     ctx.beginPath();
                     ctx.moveTo(prevPx, prevPy);
                     ctx.lineTo(px, py);
@@ -2394,14 +2387,7 @@ Edilson.
                     ctx.arc(px, py, this.size * k, 0, Math.PI * 2);
                     ctx.fillStyle = `rgba(${this.color}, ${alpha})`;
                     ctx.fill();
-                    if (this.size > 1.3 && alpha > 0.5) {
-                        ctx.beginPath();
-                        ctx.arc(px, py, this.size * k * 1.8, 0, Math.PI * 2);
-                        ctx.fillStyle = `rgba(${this.color}, ${alpha * 0.22})`;
-                        ctx.fill();
-                    }
                 }
-                ctx.restore();
             }
         }
 
@@ -2570,11 +2556,23 @@ Edilson.
 
         // Carregar posições guardadas se existirem (chave específica para mobile para garantir visibilidade perfeita)
         const isMobileScreen = window.innerWidth <= 768;
-        const POS_STORAGE_KEY = isMobileScreen ? "galaxy_pos_mobile_v5" : "galaxy_pos_desktop_v5";
+        const POS_STORAGE_KEY = isMobileScreen ? "galaxy_pos_mobile_v8" : "galaxy_pos_desktop_v8";
         let savedPositions = {};
         try {
             const raw = localStorage.getItem(POS_STORAGE_KEY);
-            if (raw) savedPositions = JSON.parse(raw);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                // Validar se o armazenamento não está com posições amontoadas
+                let clustered = 0;
+                const keys = Object.keys(parsed);
+                if (keys.length >= 10) {
+                    for (const k of keys) {
+                        const p = parsed[k];
+                        if (p && Math.hypot(p.x, p.y) < 130) clustered++;
+                    }
+                    if (clustered < 4) savedPositions = parsed;
+                }
+            }
         } catch(e) {}
 
         function saveHeartPositions() {
@@ -2587,22 +2585,34 @@ Edilson.
             } catch(e) {}
         }
 
+        // Distribuição geométrica perfeita e espaçosa em 6 anéis concêntricos (total = 66 memórias)
+        const ORBIT_RING_COUNTS = [6, 8, 10, 12, 14, 16];
         function calculateInitialOrbitalPos(index) {
             const isMobile = window.innerWidth <= 768;
-            // Raios amplos e generosos para que as 66 fotos flutuem espalhadas pelo cosmos
-            const baseRx = isMobile ? 240 : 340;
-            const baseRy = isMobile ? 220 : 270;
-            const stepX = isMobile ? 120 : 160;
-            const stepY = isMobile ? 110 : 135;
+            let ring = 0;
+            let accumulated = 0;
+            while (ring < ORBIT_RING_COUNTS.length && index >= accumulated + ORBIT_RING_COUNTS[ring]) {
+                accumulated += ORBIT_RING_COUNTS[ring];
+                ring++;
+            }
+            const indexInRing = index - accumulated;
+            const countInRing = ORBIT_RING_COUNTS[ring] || 16;
 
-            const orbitLevel = Math.floor(index / 7);
-            const orbitRadiusX = baseRx + orbitLevel * stepX;
-            const orbitRadiusY = baseRy + orbitLevel * stepY;
-            const itemsInLevel = 7 + orbitLevel * 2;
-            const angle = ((index % itemsInLevel) * (Math.PI * 2 / itemsInLevel)) + (orbitLevel * 0.35);
+            const baseRadius = isMobile ? 260 : 380;
+            const stepRadius = isMobile ? 120 : 160;
+            const radius = baseRadius + ring * stepRadius;
+
+            // Desfasamento angular por anel para que nunca fiquem alinhadas em raios rígidos
+            const ringPhase = ring * 0.45;
+            const angle = (indexInRing / countInRing) * Math.PI * 2 + ringPhase;
+
+            // Variação orgânica determinística suave (+/- 10px)
+            const jitterR = ((index * 37) % 21) - 10;
+            const finalR = radius + jitterR;
+
             return {
-                x: Math.cos(angle) * orbitRadiusX,
-                y: Math.sin(angle) * orbitRadiusY
+                x: Math.round(Math.cos(angle) * finalR),
+                y: Math.round(Math.sin(angle) * finalR)
             };
         }
 
@@ -2614,10 +2624,10 @@ Edilson.
                 const satellite = document.createElement("div");
                 satellite.className = "photo-heart-satellite";
 
-                // Posição: do storage ou da órbita inicial
+                // Posição: do storage ou da órbita inicial espaçada
                 const key = item.id || index;
                 let posX, posY;
-                if (savedPositions[key]) {
+                if (savedPositions[key] && Math.hypot(savedPositions[key].x, savedPositions[key].y) > 100) {
                     posX = savedPositions[key].x;
                     posY = savedPositions[key].y;
                 } else {
@@ -2625,6 +2635,9 @@ Edilson.
                     posX = initPos.x;
                     posY = initPos.y;
                 }
+
+                // Posicionamento imediato e garantido no espaço cósmico (evita que comecem juntas no centro)
+                satellite.style.transform = `translate3d(${posX}px, ${posY}px, 0px)`;
 
                 const isVideo = isMediaVideo(item);
                 const animDelay = ((index * 0.32) % 4).toFixed(2);
@@ -3311,7 +3324,7 @@ Edilson.
 
             const imgData = offCtx.getImageData(0, 0, canvasW, canvasH);
             const data = imgData.data;
-            const step = isMobile ? 7 : 8;
+            const step = isMobile ? 10 : 12;
 
             const scale = isMobile ? 0.65 : 1.05;
             const posY = isMobile ? -175 : -240;
@@ -3385,21 +3398,18 @@ Edilson.
             ctx.ellipse(centerScrX, nebulaY, (window.innerWidth <= 768 ? 440 : 850) * camZoom, (window.innerWidth <= 768 ? 160 : 300) * camZoom, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // 2. Linhas de constelação pré-computadas (instantâneo!)
-            ctx.lineWidth = Math.max(0.6, 0.8 * camZoom);
-            for (let i = 0; i < amoTeConstellationLinks.length; i++) {
-                const link = amoTeConstellationLinks[i];
-                const s1 = amoTeConstellationStars[link.i1];
-                const s2 = amoTeConstellationStars[link.i2];
-                const s1x = s1.x * camZoom + centerScrX;
-                const s1y = s1.y * camZoom + centerScrY;
-                const s2x = s2.x * camZoom + centerScrX;
-                const s2y = s2.y * camZoom + centerScrY;
-
-                ctx.strokeStyle = `rgba(255, 180, 220, ${link.alpha})`;
+            // 2. Linhas de constelação batched numa única chamada de desenho (ultra rápido!)
+            if (amoTeConstellationLinks.length > 0) {
                 ctx.beginPath();
-                ctx.moveTo(s1x, s1y);
-                ctx.lineTo(s2x, s2y);
+                ctx.strokeStyle = "rgba(255, 180, 220, 0.22)";
+                ctx.lineWidth = Math.max(0.6, 0.8 * camZoom);
+                for (let i = 0; i < amoTeConstellationLinks.length; i++) {
+                    const link = amoTeConstellationLinks[i];
+                    const s1 = amoTeConstellationStars[link.i1];
+                    const s2 = amoTeConstellationStars[link.i2];
+                    ctx.moveTo(s1.x * camZoom + centerScrX, s1.y * camZoom + centerScrY);
+                    ctx.lineTo(s2.x * camZoom + centerScrX, s2.y * camZoom + centerScrY);
+                }
                 ctx.stroke();
             }
 
@@ -3473,13 +3483,15 @@ Edilson.
             const centerScrX = winW / 2 + camX * camZoom;
             const centerScrY = winH / 2 + camY * camZoom;
             
-            // Desenhar círculos orbitais celestiais proporcionais ao dispositivo
-            const orbitRings = (window.innerWidth <= 768) ? [135, 200, 265, 330] : [300, 460, 620, 780];
-            orbitRings.forEach(r => {
-                ctx.beginPath();
-                ctx.arc(centerScrX, centerScrY, r * camZoom, 0, Math.PI * 2);
-                ctx.stroke();
-            });
+            // Desenhar círculos orbitais celestiais perfeitamente alinhados com as memórias
+            const isMobileDevice = window.innerWidth <= 768;
+            const baseOrbitR = isMobileDevice ? 260 : 380;
+            const stepOrbitR = isMobileDevice ? 120 : 160;
+            ctx.beginPath();
+            for (let r = 0; r < 6; r++) {
+                ctx.arc(centerScrX, centerScrY, (baseOrbitR + r * stepOrbitR) * camZoom, 0, Math.PI * 2);
+            }
+            ctx.stroke();
             ctx.restore();
 
             // Desenhar a Grande Constelação "AMO-TE" em estrelas de diamante no fundo
