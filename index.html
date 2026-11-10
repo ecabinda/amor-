@@ -20,7 +20,7 @@
             --cyan-glow: #38bdf8;
             --rose-light: #fda4af;
             --bg-dark: #030008;
-            --glass-bg: rgba(18, 8, 30, 0.72);
+            --glass-bg: rgba(14, 4, 24, 0.92);
             --glass-border: rgba(255, 120, 180, 0.28);
             --glass-shadow: 0 15px 45px rgba(0, 0, 0, 0.75);
         }
@@ -101,7 +101,7 @@
             width: 0;
             height: 0;
             transform-style: preserve-3d;
-            transition: transform 0.08s linear;
+            will-change: transform;
         }
 
         /* CENTRAL GLOWING HEART (Indira & Edilson) */
@@ -125,8 +125,7 @@
             width: 320px;
             height: 320px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(255, 42, 133, 0.35) 0%, rgba(168, 85, 247, 0.15) 50%, transparent 75%);
-            filter: blur(28px);
+            background: radial-gradient(circle, rgba(255, 42, 133, 0.4) 0%, rgba(168, 85, 247, 0.18) 45%, transparent 70%);
             animation: pulseNebula 4s infinite ease-in-out;
             pointer-events: none;
         }
@@ -144,7 +143,7 @@
             position: relative;
             width: 240px;
             height: 240px;
-            filter: drop-shadow(0 0 35px rgba(255, 42, 133, 0.95)) drop-shadow(0 0 65px rgba(168, 85, 247, 0.7));
+            filter: drop-shadow(0 0 20px rgba(255, 42, 133, 0.9));
             animation: heartBeat 2.2s infinite ease-in-out;
             transform-origin: center center;
             display: flex;
@@ -307,8 +306,8 @@
 
         .photo-heart-tag {
             margin-top: 8px;
-            background: rgba(10, 3, 20, 0.82);
-            border: 1px solid rgba(255, 120, 180, 0.4);
+            background: rgba(14, 4, 24, 0.94);
+            border: 1px solid rgba(255, 120, 180, 0.45);
             color: #fff;
             padding: 4px 12px;
             border-radius: 20px;
@@ -316,9 +315,8 @@
             white-space: nowrap;
             letter-spacing: 0.5px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
             pointer-events: none;
-            transition: all 0.25s ease;
+            transition: transform 0.2s ease;
         }
 
         .photo-heart-satellite:hover .photo-heart-tag {
@@ -396,8 +394,7 @@
             font-size: 0.8rem;
             font-weight: 600;
             cursor: pointer;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
         }
@@ -421,8 +418,8 @@
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
             border-radius: 40px;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
             box-shadow: 0 8px 32px rgba(0,0,0,0.5);
             pointer-events: auto;
         }
@@ -459,7 +456,7 @@
             align-items: center;
             gap: 7px;
             transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
+            
         }
 
         .hud-btn:hover {
@@ -484,8 +481,8 @@
             border: 1px solid var(--glass-border);
             border-radius: 26px;
             padding: 18px 24px;
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
             box-shadow: var(--glass-shadow);
             pointer-events: auto;
             text-align: center;
@@ -3382,27 +3379,11 @@ Edilson.
 
             ctx.save();
 
-            // 1. Nebulosa suave e resplandecente no fundo das letras AMO-TE
-            const nebulaY = centerScrY + (window.innerWidth <= 768 ? -175 : -240) * camZoom;
-            const nebulaGrad = ctx.createRadialGradient(
-                centerScrX, nebulaY, 50 * camZoom,
-                centerScrX, nebulaY, (window.innerWidth <= 768 ? 420 : 800) * camZoom
-            );
-            nebulaGrad.addColorStop(0, "rgba(255, 42, 133, 0.15)");
-            nebulaGrad.addColorStop(0.4, "rgba(168, 85, 247, 0.08)");
-            nebulaGrad.addColorStop(0.8, "rgba(254, 240, 138, 0.03)");
-            nebulaGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
-
-            ctx.fillStyle = nebulaGrad;
-            ctx.beginPath();
-            ctx.ellipse(centerScrX, nebulaY, (window.innerWidth <= 768 ? 440 : 850) * camZoom, (window.innerWidth <= 768 ? 160 : 300) * camZoom, 0, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 2. Linhas de constelação batched numa única chamada de desenho (ultra rápido!)
+            // 1. Linhas de constelação batched numa única chamada de desenho
             if (amoTeConstellationLinks.length > 0) {
                 ctx.beginPath();
-                ctx.strokeStyle = "rgba(255, 180, 220, 0.22)";
-                ctx.lineWidth = Math.max(0.6, 0.8 * camZoom);
+                ctx.strokeStyle = "rgba(255, 180, 220, 0.25)";
+                ctx.lineWidth = Math.max(0.6, 0.85 * camZoom);
                 for (let i = 0; i < amoTeConstellationLinks.length; i++) {
                     const link = amoTeConstellationLinks[i];
                     const s1 = amoTeConstellationStars[link.i1];
@@ -3413,40 +3394,38 @@ Edilson.
                 ctx.stroke();
             }
 
-            // 3. Estrelas de diamante brilhantes de AMO-TE (sem shadowBlur lento!)
+            // 2. Estrelas de diamante de AMO-TE batched num único ciclo (zero sobrecarga no PC e telemóvel!)
+            ctx.beginPath();
+            ctx.fillStyle = "rgba(255, 215, 240, 0.9)";
             for (let i = 0; i < amoTeConstellationStars.length; i++) {
                 const s = amoTeConstellationStars[i];
                 const sx = s.x * camZoom + centerScrX;
                 const sy = s.y * camZoom + centerScrY;
+                if (sx < -30 || sx > winW + 30 || sy < -30 || sy > winH + 30) continue;
+                const r = s.baseSize * camZoom;
+                ctx.moveTo(sx + r, sy);
+                ctx.arc(sx, sy, r, 0, Math.PI * 2);
+            }
+            ctx.fill();
 
-                if (sx < -40 || sx > winW + 40 || sy < -40 || sy > winH + 40) continue;
-
-                const shimmer = 0.55 + 0.45 * Math.sin(constellationTime * s.speed * 40 + s.phase);
-                const radius = Math.max(0.8, s.baseSize * camZoom * shimmer);
-
-                ctx.beginPath();
-                ctx.arc(sx, sy, radius, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(${s.color}, ${0.75 + 0.25 * shimmer})`;
-                ctx.fill();
-
-                // Halo leve para nós de destaque
-                if (s.isBrightNode) {
+            // 3. Nós cintilantes selecionados de destaque
+            for (let i = 0; i < amoTeConstellationStars.length; i += 7) {
+                const s = amoTeConstellationStars[i];
+                if (!s.isBrightNode) continue;
+                const sx = s.x * camZoom + centerScrX;
+                const sy = s.y * camZoom + centerScrY;
+                if (sx < -30 || sx > winW + 30 || sy < -30 || sy > winH + 30) continue;
+                const shimmer = 0.5 + 0.5 * Math.sin(constellationTime * s.speed * 40 + s.phase);
+                if (shimmer > 0.85) {
+                    const flareLen = (s.baseSize * 3.5 + 4) * camZoom;
+                    ctx.strokeStyle = `rgba(${s.color}, 0.75)`;
+                    ctx.lineWidth = Math.max(0.5, 0.9 * camZoom);
                     ctx.beginPath();
-                    ctx.arc(sx, sy, radius * 2.2, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(${s.color}, 0.2)`;
-                    ctx.fill();
-
-                    if (shimmer > 0.75) {
-                        const flareLen = (s.baseSize * 3.8 + 4) * camZoom * shimmer;
-                        ctx.strokeStyle = `rgba(${s.color}, ${(shimmer - 0.75) * 2.5})`;
-                        ctx.lineWidth = Math.max(0.5, 1.0 * camZoom);
-                        ctx.beginPath();
-                        ctx.moveTo(sx - flareLen, sy);
-                        ctx.lineTo(sx + flareLen, sy);
-                        ctx.moveTo(sx, sy - flareLen);
-                        ctx.lineTo(sx, sy + flareLen);
-                        ctx.stroke();
-                    }
+                    ctx.moveTo(sx - flareLen, sy);
+                    ctx.lineTo(sx + flareLen, sy);
+                    ctx.moveTo(sx, sy - flareLen);
+                    ctx.lineTo(sx, sy + flareLen);
+                    ctx.stroke();
                 }
             }
 
@@ -3475,32 +3454,39 @@ Edilson.
             // Desenhar estrelas com parallax
             ctx.clearRect(0, 0, winW, winH);
 
-            // Linhas de constelação entre órbitas
-            ctx.save();
-            ctx.strokeStyle = "rgba(255, 120, 180, 0.12)";
-            ctx.lineWidth = 1;
-            ctx.setLineDash([4, 8]);
             const centerScrX = winW / 2 + camX * camZoom;
             const centerScrY = winH / 2 + camY * camZoom;
-            
-            // Desenhar círculos orbitais celestiais perfeitamente alinhados com as memórias
+
+            // Desenhar círculos orbitais celestiais suaves (renderização direta em GPU sem cálculo de traços)
             const isMobileDevice = window.innerWidth <= 768;
             const baseOrbitR = isMobileDevice ? 260 : 380;
             const stepOrbitR = isMobileDevice ? 120 : 160;
+            ctx.strokeStyle = "rgba(255, 120, 180, 0.08)";
+            ctx.lineWidth = 1;
             ctx.beginPath();
             for (let r = 0; r < 6; r++) {
                 ctx.arc(centerScrX, centerScrY, (baseOrbitR + r * stepOrbitR) * camZoom, 0, Math.PI * 2);
             }
             ctx.stroke();
-            ctx.restore();
 
             // Desenhar a Grande Constelação "AMO-TE" em estrelas de diamante no fundo
             drawAmoTeConstellation(ctx, centerScrX, centerScrY, camZoom);
 
+            // Desenhar estrelas de fundo batched num único ciclo (super leve para o processador!)
+            ctx.beginPath();
+            ctx.fillStyle = "rgba(255, 235, 248, 0.82)";
             for (let i = 0; i < stars.length; i++) {
-                stars[i].update(deltaCamX, deltaCamY);
-                stars[i].draw();
+                const s = stars[i];
+                s.update(deltaCamX, deltaCamY);
+                const k = 600 / s.z;
+                const px = s.x * k + winW / 2;
+                const py = s.y * k + winH / 2;
+                if (px < -30 || px > winW + 30 || py < -30 || py > winH + 30) continue;
+                const r = s.size * k;
+                ctx.moveTo(px + r, py);
+                ctx.arc(px, py, r, 0, Math.PI * 2);
             }
+            ctx.fill();
 
             requestAnimationFrame(universeRenderLoop);
         }
