@@ -1,0 +1,14 @@
+PASTA DE VÍDEOS DE INDIRA & EDILSON 🎬💖
+=========================================
+
+Podes colocar aqui os teus ficheiros de vídeo (.mp4, .mov, .webm) do teu telemóvel ou computador!
+
+Exemplo:
+1. Copia um vídeo para esta pasta com o nome: "o_nosso_video.mp4"
+2. Abre a página 'index.html' no navegador.
+3. Clica em "➕ Nova Memória".
+4. No campo "Caminho / Link do Vídeo", escreve: videos/o_nosso_video.mp4
+5. Clica em "Lançar Coração no Universo"!
+
+Em alternativa, podes simplesmente clicar em "Selecionar Ficheiro" na página web e escolher qualquer vídeo do teu dispositivo!
+
